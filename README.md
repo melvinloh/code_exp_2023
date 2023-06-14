@@ -11,7 +11,7 @@ Participants are to work on an application for the benefit/well-being of the pub
 - [Wireframe](https://www.figma.com/file/ok2RZYXx9M2uyqusGX7DpM/code_exp-wireframe?type=whiteboard&t=nBycGwRcrWux6BB7-1) made on Figma
 - [System Architecture](https://www.figma.com/file/pq6yJLABmHrupsthdZ9HSf/code_exp-architecture?type=whiteboard&t=MSHPrPCd5MGqDtt3-6) also on Figma
 - [Elevator Pitch](https://www.youtube.com/watch?v=jPgynG7qG3Y) on YouTube *(1 minute)*
-- [Value Proposition Powerpoint presentation]("./code_exp qualifiers ppt.pdf") *(10 - 15 slides)*
+- [Value Proposition Powerpoint presentation]('./code_exp%20qualifiers%20ppt.pdf') *(10 - 15 slides)*
 
 ## About the App (App Features)
 
