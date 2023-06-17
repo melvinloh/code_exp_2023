@@ -1,11 +1,11 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { FoodContext } from '../contexts/FoodContext';
 import { AuthContext } from '../contexts/AuthContext';
 import LocationSearch from '../components/LocationSearch/LocationSearch';
 import * as ImagePicker from 'expo-image-picker';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { FontAwesome } from '@expo/vector-icons';
@@ -13,8 +13,12 @@ import axios from 'axios';
 import Taskbar from '../components/Taskbar/Taskbar';
 import HideWithKeyboard from 'react-native-hide-with-keyboard';
 
-const CreateFoodListing = () => {
+const CreateFoodListing = ({ route }) => {
+
   const navigation = useNavigation();
+  const { params } = route;
+  const id = params ? params.id : null;
+
   const { isLoggedIn, domain, userId } = useContext(AuthContext);
 
   const [title, setTitle] = useState('');
@@ -24,13 +28,64 @@ const CreateFoodListing = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
-  const [image, setImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  
   const [expirationDate, setExpirationDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const [showLocationSearchComponent, setShowLocationSearchComponent] = useState(false);
 
   const { foodCategories } = useContext(FoodContext);
+
+  const fetchFoodDetails = async () => {
+
+    if (id) {
+      try {
+        const response = await axios.get(`${domain}/api/food/${id}`);
+        console.log('hello world');
+        console.log(response.data);
+        const data = await response.data; 
+        setSelectedCategory(data.category);
+        setDescription(data.description);
+        setExpirationDate(new Date(data.expiration_date));
+        setLatitude(data.latitude);
+        setLongitude(data.longitude);
+        setPickupLocation(data.pickup_location);
+        setPrice(data.price);
+        setTitle(data.title);
+        setImageFile(`${domain + data.food_image_url}`)
+
+
+        
+      } catch (error) {
+        console.log('Error fetching food details:', error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    // Fetch food details when the screen mounts
+    fetchFoodDetails();
+
+    // Clean up function to cancel any ongoing requests or subscriptions
+    return () => {
+      // Add any necessary cleanup logic here
+    };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Fetch food details when the screen gains focus
+      fetchFoodDetails();
+
+      // Clean up function to cancel any ongoing requests or subscriptions
+      return () => {
+        // Add any necessary cleanup logic here
+      };
+    }, [])
+  );
+
+
 
   const handleLocationSearchComponentToggle = () => {
     setShowLocationSearchComponent((prevState) => !prevState);
@@ -42,10 +97,11 @@ const CreateFoodListing = () => {
     setPickupLocation(locationData.display_name);
   };
 
+
   const handleImageUpload = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.granted === false) {
-      alert('Permission to access the camera roll is required!');
+      alert('Permission to access the camera and media library is required!');
       return;
     }
 
@@ -56,10 +112,10 @@ const CreateFoodListing = () => {
     });
 
     if (!pickerResult.cancelled) {
-      setImage(pickerResult.uri);
-      console.log(pickerResult.uri);
+      setImageFile(pickerResult.uri);
     }
   };
+
 
   const handleDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || expirationDate;
@@ -77,11 +133,15 @@ const CreateFoodListing = () => {
       alert('Please fill in all required fields.');
       return;
     }
+    if (!imageFile) {
+      alert('Please upload an image.');
+      return;
+    }
 
     // Prepare the form data
     const formData = new FormData();
     formData.append('image', {
-      uri: image,
+      uri: imageFile,
       name: 'food_image.jpg',
       type: 'image/jpeg',
     });
@@ -96,22 +156,44 @@ const CreateFoodListing = () => {
     // convert to date string first!!!
     formData.append('expirationDate', expirationDate.toDateString());
 
-    try {
-      // Send form data to the backend
-      const response = await axios.post(`${domain}/api/create-food-listing/`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
 
-      // Show success message and navigate to HomeScreen
-      alert('Food listing created successfully.');
-      navigation.navigate('Home');
-    } catch (error) {
-      console.log('Error:', error);
-      // Handle error
-      // ...
+    if (id) {
+
+      try {
+        formData.append('foodId', id);
+        // Send form data to the backend
+        const response = await axios.post(`${domain}/api/edit-food-listing/`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        // Show success message and navigate to HomeScreen
+        alert('Food listing updated successfully.');
+        navigation.navigate('Home');
+      } catch(error) {
+        alert('Failed to update food listing.');
+      }
+
+    } else {
+
+      try {
+        // Send form data to the backend
+        const response = await axios.post(`${domain}/api/create-food-listing/`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+  
+        // Show success message and navigate to HomeScreen
+        alert('Food listing created successfully.');
+        navigation.navigate('Home');
+      } catch (error) {
+        alert('Failed to create food listing.');
+      }
+
     }
+
+
   };
 
     // taskbar stuff
@@ -133,7 +215,7 @@ const CreateFoodListing = () => {
         <View>
 
           <View style={styles.uploadButtonContainer}>
-            {image && <Image source={{ uri: image }} style={styles.image} />}
+            {imageFile && <Image source={{ uri: imageFile }} style={styles.image} />}
 
             <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <TouchableOpacity style={[styles.uploadRemoveButton, {backgroundColor: 'orange'}]} onPress={handleImageUpload}>
@@ -141,7 +223,7 @@ const CreateFoodListing = () => {
                 <Text style={styles.uploadButtonText}>Upload</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={[styles.uploadRemoveButton, {backgroundColor: 'red'}]} onPress={() => setImage(null)}>
+              <TouchableOpacity style={[styles.uploadRemoveButton, {backgroundColor: 'red'}]} onPress={() => setImageFile(null)}>
                 <FontAwesome name="times" size={18} color="white" />
                 <Text style={styles.uploadButtonText}>Remove</Text>
               </TouchableOpacity>
@@ -221,7 +303,7 @@ const CreateFoodListing = () => {
           </View>
 
           <TouchableOpacity style={[styles.button, styles.submitButton]} onPress={handleSubmit}>
-            <Text style={styles.buttonText}>Submit New Listing</Text>
+            <Text style={styles.buttonText}>{id ? 'Update Listing' : 'Submit New Listing'}</Text>
           </TouchableOpacity>
         </View>
       )}

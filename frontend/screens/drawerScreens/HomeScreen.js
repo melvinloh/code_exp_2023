@@ -23,6 +23,7 @@ const HomeScreen = () => {
 
   const [showSearchComponent, setShowSearchComponent] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+  const [searchIsLoading, setSearchIsLoading] = useState(true);
 
   useEffect(() => {
     fetchNearYouListings();
@@ -78,6 +79,7 @@ const HomeScreen = () => {
   // search bar logic
   const handleSearchField = async (searchfield) => {
     if (searchfield !== '') {
+      setSearchIsLoading(true);
       setShowSearchComponent(true);
       // Go and fetch results then set search results 
       try {
@@ -92,15 +94,18 @@ const HomeScreen = () => {
         });
   
         setSearchResults(response.data);
+        setSearchIsLoading(false);
 
       } catch (error) {
         console.log('Error fetching my listings:', error);
         setSearchResults([]);
         setShowSearchComponent(false);
+        setSearchIsLoading(false);
       }
     } else {
       setSearchResults([]);
       setShowSearchComponent(false);
+      setSearchIsLoading(false);
     }
 
   };
@@ -115,7 +120,7 @@ const HomeScreen = () => {
       </View>
 
       <View style={{paddingHorizontal: 16}}>
-        <SearchBar handleSearchField={handleSearchField} searchResults={searchResults}/>
+        <SearchBar handleSearchField={handleSearchField} searchResults={searchResults} searchIsLoading={searchIsLoading}/>
       </View>
 
       <View style={styles.container}>

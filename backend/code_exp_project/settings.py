@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "user.apps.UserConfig",
     "api.apps.ApiConfig",
     "rest_framework_simplejwt.token_blacklist",
+    "storages",
 ]
 
 # all jwt auth settings
@@ -192,9 +193,21 @@ AUTH_USER_MODEL = 'user.User'
 
 # configure network settings
 # Django settings.py
-ALLOWED_HOSTS = ['192.168.1.10', '127.0.0.1']
+ALLOWED_HOSTS = ['192.168.1.10', '127.0.0.1', '192.168.164.1']
 
 CORS_ORIGIN_WHITELIST = [
     'http://192.168.1.10:19000',
     'http://127.0.0.1:19000',
+    'http://192.168.164.1:19000',
 ]
+
+
+# # REMOVE BEFORE MAKING GITHUB REPO PUBLIC
+# AWS_ACCESS_KEY_ID = 'AKIA3NCPY2JHU4ZTGF45'
+# AWS_SECRET_ACCESS_KEY = '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'
+# AWS_STORAGE_BUCKET_NAME = 'gustoso-images'
+
+# AWS_S3_FILE_OVERWRITE = False
+# AWS_DEFAULT_ACL = None
+# # django < 4.2
+# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'

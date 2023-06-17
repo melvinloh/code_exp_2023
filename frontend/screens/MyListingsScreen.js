@@ -49,6 +49,10 @@ const MyListingScreen = () => {
     navigation.navigate('FoodDetailScreen', { id });
   };
 
+  const handleEditCard = (id) => {
+    navigation.navigate('CreateFoodListing', { id });
+  }
+
   const handleDeleteCard = async (id) => {
     try {
       // Send a request to the backend to delete the listing
@@ -72,6 +76,15 @@ const MyListingScreen = () => {
 
   const renderCard = ({ item }) => {
     const rightButtons = [
+
+      <TouchableOpacity
+        style={[styles.swipeButton, { backgroundColor: 'orange' }]}
+        onPress={() => handleEditCard(item.id)}
+      >
+        <Ionicons name="md-pencil" size={24} color="white" />
+        <Text style={styles.buttonText}>Edit</Text>
+      </TouchableOpacity>,
+
       <TouchableOpacity
         style={[styles.swipeButton, { backgroundColor: 'red' }]}
         onPress={() => handleDeleteCard(item.id)}
@@ -79,6 +92,7 @@ const MyListingScreen = () => {
         <Ionicons name="md-trash-bin" size={24} color="white" />
         <Text style={styles.buttonText}>Delete</Text>
       </TouchableOpacity>,
+
     ];
 
     return (
@@ -187,11 +201,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: 80,
     height: '85%',
-    marginLeft: 15,
+    marginHorizontal: 0,
     marginBottom: 20,
     backgroundColor: '#fff',
     borderRadius: 15,
-    padding: 10,
+    padding: 0,
   },
   buttonText: {
     color: 'white',

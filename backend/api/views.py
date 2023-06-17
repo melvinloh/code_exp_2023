@@ -22,6 +22,8 @@ from .serializer import FoodListingSerializer
 from random import seed, shuffle
 from django.db.models import Q
 
+import uuid
+
 
 # Create your views here.
 
@@ -180,10 +182,61 @@ def get_my_listings(request):
             return JsonResponse({'error': 'User not found.'}, status=404)
     return Response({'error': 'Invalid request method.'}, status=400)
 
+
+def generate_unique_filename(original_filename):
+    extension = os.path.splitext(original_filename)[1]
+    unique_filename = f"{uuid.uuid4().hex}{extension}"
+    return unique_filename
+
+@api_view(['POST'])
+@csrf_exempt
+def edit_food_listing(request):
+    if request.method == 'POST':
+        # Retrieve form data from the request
+        food_listing = FoodListing.objects.get(id=request.POST.get('foodId'))
+
+        food_listing.title = request.POST.get('title')
+        food_listing.description = request.POST.get('description')
+        food_listing.price = Decimal(request.POST.get('price'))
+        food_listing.pickup_location = request.POST.get('pickupLocation')
+        food_listing.category = Category.objects.get(category_name=request.POST.get('selectedCategory'))
+
+        expiration_date_string = request.POST.get('expirationDate')
+        food_listing.expiration_date = datetime.strptime(expiration_date_string, "%a %b %d %Y").date()
+
+        food_listing.longitude = float(request.POST.get('longitude'))
+        food_listing.latitude = float(request.POST.get('latitude'))
+
+        try: 
+            image_data = request.FILES['image']
+            if image_data:
+                # Generate a new unique filename
+                original_filename = image_data.name
+                new_filename = generate_unique_filename(original_filename)
+
+            # Rename the image file
+            image_data.name = new_filename
+            food_listing.image = image_data
+            food_listing.save()
+        
+        except Exception as e:
+            food_listing.save()
+            return Response({'success': 'Food listing edited successfully.'}, status=status.HTTP_200_OK)
+
+        # Return success response
+        return Response({'success': 'Food listing edited successfully.'}, status=status.HTTP_200_OK)
+
+    else:
+        # Return error response for invalid request method
+        return Response({'error': 'Invalid request method.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 @api_view(['POST'])
 @csrf_exempt
 def create_food_listing(request):
+
     if request.method == 'POST':
+
         # Retrieve form data from the request
         user = User.objects.get(id=request.POST.get('userId'))
         title = request.POST.get('title')
@@ -214,16 +267,25 @@ def create_food_listing(request):
         )
 
         try: 
-            # Get the base64 encoded image data
-            image_data = request.POST.get('image')
-        
-            # Decode and process the image data
-            format, imgstr = image_data.split(';base64,')
-            ext = format.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name=f'temp.{ext}')
 
-            # Set the image field using the processed image data
-            food_listing.image.save(f'image_{food_listing.id}.{ext}', data, save=True)
+            image_data = request.FILES['image']
+            if image_data:
+                # Generate a new unique filename
+                original_filename = image_data.name
+                new_filename = generate_unique_filename(original_filename)
+
+            # Rename the image file
+            image_data.name = new_filename
+            food_listing.image = image_data
+            food_listing.save()
+        
+            # # Decode and process the image data
+            # format, imgstr = image_data.split(';base64,')
+            # ext = format.split('/')[-1]
+            # data = ContentFile(base64.b64decode(imgstr), name=f'temp.{ext}')
+
+            # # Set the image field using the processed image data
+            # food_listing.image.save(f'image_{food_listing.id}.{ext}', data, save=True)
 
         except Exception as e:
             # hardcode the image

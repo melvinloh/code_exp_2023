@@ -7,15 +7,17 @@ import { useNavigation } from '@react-navigation/native';
 
 let debounceTimer = null;
 
-const SearchBar = ({handleSearchField, searchResults}) => {
+const SearchBar = ({handleSearchField, searchResults, searchIsLoading}) => {
   const [searchText, setSearchText] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const searchInputRef = useRef(null);
   const navigation = useNavigation();
 
   // using debounce to prevent too many calls at once
   useEffect(() => {
+    setIsLoading(true); // Set isLoading to true when the user types
     debounceSearchField();
-  }, [searchText]);
+  }, [searchText, setIsLoading]); // Add setIsLoading as a dependency
 
   const debounceSearchField = () => {
     if (debounceTimer) {
@@ -24,15 +26,16 @@ const SearchBar = ({handleSearchField, searchResults}) => {
 
     debounceTimer = setTimeout(() => {
       handleSearchField(searchText);
+      setIsLoading(searchIsLoading);
     }, 300);
   };
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (debounceTimer) {
       clearTimeout(debounceTimer);
     }
-
     handleSearchField(searchText);
+
   };
 
   const handleClearSearch = () => {
@@ -77,7 +80,9 @@ const SearchBar = ({handleSearchField, searchResults}) => {
         
       <View>
         <ScrollView contentContainerStyle={{ paddingVertical: 10 }} showsVerticalScrollIndicator={false}>
-          {searchResults.map((item) => (
+          {isLoading && <View><Text style={{ fontSize: 14, color: 'black', marginBottom: 5, textAlign: 'center', }}>Loading...</Text></View>}
+          {!isLoading && searchResults.length === 0 && <View><Text style={{ fontSize: 14, color: 'black', marginBottom: 5, textAlign: 'center', }}>No matching results to show</Text></View>}
+          {!isLoading && searchResults.map((item) => (
             <View key={item.id} style={{ paddingVertical: 18, paddingHorizontal: 8, backgroundColor: 'white', marginBottom: 10 }}>
               <TouchableOpacity onPress={() => {navigation.navigate('FoodDetailScreen', { id: item.id }) }}>
                 <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'black', marginBottom: 2 }} numberOfLines={1} ellipsizeMode="tail">{item.title}</Text>
