@@ -83,6 +83,8 @@ def sorting_queryset(queryset, filter):
         return queryset.order_by('-id')
     elif filter == 'Expiring':
         return queryset.order_by('expiration_date')
+    elif filter == 'Free':
+        return queryset.filter(price=0)
     elif filter == 'Price - Low to High':
         return queryset.order_by('price')
     elif filter == 'Price - High to Low':

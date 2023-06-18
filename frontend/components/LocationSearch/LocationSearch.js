@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, FlatList, TouchableOpacity, Image, ScrollView, StyleSheet, Button} from 'react-native';
 import axios from 'axios';
+import { Ionicons } from '@expo/vector-icons';
 
 import SearchIcon from '../../assets/icons/search-icon.png';
 import CloseIcon from '../../assets/icons/close-icon.png';
@@ -82,9 +83,9 @@ const LocationSearch = ({ updatePickupLocation, closeLocationSearch }) => {
       {/* contain back button and search bar */}
       <View style={{flexDirection: 'row', alignItems: 'center'}}>
 
-      <View style={{ marginTop: 2, marginBottom: 16, }}>
-        <TouchableOpacity style={styles.backButton} onPress={closeLocationSearch}>
-          <Text style={styles.backButtonText}>{"<"}</Text>
+      <View style={{ marginTop: 2, marginBottom: 20, }}>
+        <TouchableOpacity onPress={closeLocationSearch}>
+          <Ionicons name="md-arrow-back-circle-sharp" size={35} color="orange" />
         </TouchableOpacity>
       </View>
 
@@ -137,8 +138,8 @@ const styles = {
     backgroundColor: '#F9F9F9',
     marginBottom: 16,
     paddingHorizontal: 10,
-    marginLeft: 10,
-    marginRight: 25,
+    marginLeft: 7,
+    marginRight: 35,
   },
   searchIcon: {
     width: 20,

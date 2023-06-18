@@ -5,6 +5,7 @@ import { View, Text, FlatList, StyleSheet, Dimensions, Image, TouchableOpacity }
 import Card from "../components/CardSection/Card";
 import axios from "axios";
 import EmptyListings from "../modules/EmptyListings";
+import { Ionicons } from '@expo/vector-icons';
 
 
 const ItemSeparator = () => {
@@ -63,6 +64,7 @@ const CategoryListingScreen = ({ route }) => {
     "Expiring",
     "Price - Low to High",
     "Price - High to Low",
+    "Free",
     "Region: Downtown",
     "Region: East",
     "Region: West",
@@ -73,7 +75,7 @@ const CategoryListingScreen = ({ route }) => {
     setActiveFilter(filter);
   };
 
-  if (categorizedListings.length === 0) {
+  if (categorizedListings.length === 0 && activeFilter !== "Free") {
     return (
       <EmptyListings 
         description={'No listings available for this category'}
@@ -85,11 +87,18 @@ const CategoryListingScreen = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      <View style={{ justifyContent: 'center', alignItems: 'center', marginVertical: 10 }}>
-        <Text style={styles.title}>{category}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 10 }}>
+        <TouchableOpacity
+          onPress={() => { navigation.navigate('Home') }}
+        >
+          <Ionicons name="md-arrow-back-circle-sharp" size={35} color="orange" />
+        </TouchableOpacity>
+
+        <Text style={[styles.title, { flex: 1, textAlign: 'center', paddingRight: 35 }]}>{category}</Text>
       </View>
 
       <View style={styles.filterContainer}>
+
         {filterOptions.map((filter) => (
           <TouchableOpacity
             key={filter}
@@ -111,16 +120,31 @@ const CategoryListingScreen = ({ route }) => {
         ))}
       </View>
 
-      <FlatList
-        data={categorizedListings}
-        renderItem={renderCard}
-        keyExtractor={(item) => item.id.toString()}
-        numColumns={2}
-        contentContainerStyle={styles.cardContainer}
-        ItemSeparatorComponent={ItemSeparator}
-        showsVerticalScrollIndicator={false} // Add this line
+              {/* for empty listings for free category */}
+      {categorizedListings.length === 0 ? (
 
-      />
+          <View style={styles.emptyContainer}>
+            <Image
+              source={require('../assets/food-stand-no-listing.png')}
+              style={styles.emptyImage}
+            />
+            <Text style={styles.emptyTitle}>No free listings available at the moment</Text>
+          </View>
+
+        ) : (
+            <FlatList
+            data={categorizedListings}
+            renderItem={renderCard}
+            keyExtractor={(item) => item.id.toString()}
+            numColumns={2}
+            contentContainerStyle={styles.cardContainer}
+            ItemSeparatorComponent={ItemSeparator}
+            showsVerticalScrollIndicator={false} // Add this line
+    
+          />
+        )}
+
+    
     </View>
   );
 };
@@ -183,6 +207,23 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     marginVertical: 10,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    backgroundColor: 'white',
+  },
+  emptyImage: {
+    width: 150,
+    height: 150,
+    marginBottom: 24,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 24,
   },
 });
 
