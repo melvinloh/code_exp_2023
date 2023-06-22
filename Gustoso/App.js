@@ -11,7 +11,7 @@ import { FoodContext, FoodContextProvider } from './contexts/FoodContext';
 import { LogBox } from 'react-native';
 
 // Ignore all logs
-// LogBox.ignoreAllLogs();
+LogBox.ignoreAllLogs();
 
 export default function App() {
 

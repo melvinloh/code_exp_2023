@@ -3,7 +3,7 @@ import { Platform, Text, View, StyleSheet } from 'react-native';
 import Constants from 'expo-constants';
 import * as Location from 'expo-location';
 
-const LocationComponent = () => {
+const LocationComponent = ({refreshing}) => {
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [locationName, setLocationName] = useState('Fetching location...');
@@ -23,6 +23,7 @@ const LocationComponent = () => {
       }
 
       try {
+        setLocationName('Fetching location...');
         const { coords } = await Location.getCurrentPositionAsync();
         setLocation(coords);
 
@@ -40,7 +41,7 @@ const LocationComponent = () => {
         setLocationName('Failed to fetch location');
       }
     })();
-  }, []);
+  }, [refreshing]);
 
 
 

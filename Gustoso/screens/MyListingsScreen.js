@@ -98,7 +98,7 @@ const MyListingScreen = () => {
     return (
       <Swipeable rightButtons={rightButtons}>
         <TouchableOpacity style={styles.card} onPress={() => handleCardPress(item.id)}>
-          <Image source={{ uri: `${domain + item.image}` }} style={styles.image} />
+          <Image source={{ uri: `${item.image}` }} style={styles.image} />
           <View style={styles.details}>
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.category}>{item.category}</Text>

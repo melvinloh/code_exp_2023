@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../contexts/AuthContext";
 import { FoodContext } from "../../contexts/FoodContext";
-import { View, Text, Button, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Button, FlatList, StyleSheet, TouchableOpacity, RefreshControl, ScrollView } from 'react-native';
 import ProfileButton from "../../modules/ProfileButton";
 import LocationComponent from "../../modules/LocationComponent";
 
@@ -12,6 +12,7 @@ import { useNavigation } from "@react-navigation/native";
 import Taskbar from "../../components/Taskbar/Taskbar";
 import HideWithKeyboard from 'react-native-hide-with-keyboard';
 import axios from "axios";
+import LoadingCardSection from "../../components/CardSection/LoadingCardSection";
 
 const HomeScreen = () => {
   const navigation = useNavigation();
@@ -24,6 +25,26 @@ const HomeScreen = () => {
   const [showSearchComponent, setShowSearchComponent] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [searchIsLoading, setSearchIsLoading] = useState(true);
+
+  const [refreshing, setRefreshing] = useState(false);
+
+
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+  
+    try {
+      await fetchNearYouListings();
+      await fetchForYouListings();
+    } catch (error) {
+      // Handle any errors that occurred during data fetching
+      console.log('refresh error');
+      setRefreshing(false);
+    }
+    
+    console.log('refresh success');
+    setRefreshing(false);
+  };
 
   useEffect(() => {
     fetchNearYouListings();
@@ -113,19 +134,29 @@ const HomeScreen = () => {
 
 
   return (
-    <View style={{flex: 1, backgroundColor: 'white'}}>
+    <View style={{flex: 1, backgroundColor: 'white'}}> 
+      <ScrollView
+      scrollEnabled={showSearchComponent}
+      showsVerticalScrollIndicator={false}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['orange']} />}
+    >
+
       <View style={styles.profileButtonContainer}>
         <ProfileButton username={username} />
-        <LocationComponent />
+        <LocationComponent refreshing={refreshing} />
       </View>
 
       <View style={{paddingHorizontal: 16}}>
         <SearchBar handleSearchField={handleSearchField} searchResults={searchResults} searchIsLoading={searchIsLoading}/>
       </View>
+      
 
       <View style={styles.container}>
+
+
         {!showSearchComponent && (
             <>
+   
             <FlatList
             style={styles.flatListContainer}
             data={foodCategories}
@@ -135,14 +166,26 @@ const HomeScreen = () => {
             scrollEnabled={false} // Disable scrolling
             showsVerticalScrollIndicator={false} // Hide the vertical scrollbar
             />
+      
 
-            <CardSection title={'Food near you'} listings={nearYouListings}/>
-            <CardSection title={'Food you may like'} listings={forYouListings}/>
+            {refreshing ? (
+              <>
+                <LoadingCardSection title={'Food near you'}  />
+                <LoadingCardSection title={'Food you may like'} />
+              </>
+            ) : (
+              <>
+            <CardSection title={'Food near you'} listings={nearYouListings} />
+            <CardSection title={'Food you may like'} listings={forYouListings} />
+
+              </>
+            )}
 
             </>
         )}
-   
       </View>
+      </ScrollView>
+   
       <HideWithKeyboard>
         <View>
           {isLoggedIn &&<Taskbar activeButton={'home'} onPressButton={handleButtonPress} />}

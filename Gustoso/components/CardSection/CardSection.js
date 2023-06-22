@@ -2,7 +2,6 @@ import React from 'react';
 import { View, ScrollView, Dimensions, Text, StyleSheet } from 'react-native';
 import Card from './Card';
 import { useNavigation } from '@react-navigation/native';
-import FoodDetailScreen from '../../screens/FoodDetailScreen';
 
 const { width, height } = Dimensions.get('window');
 const cardMaxHeight = height / 4 - 20; // Adjust the card height as needed
@@ -17,7 +16,10 @@ const CardSection = ({title, listings}) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{title}</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+      >
         <View style={styles.cardContainer}>
         {listings.map((item) => (
             <Card

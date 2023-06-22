@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Platform, ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { FoodContext } from '../contexts/FoodContext';
 import { AuthContext } from '../contexts/AuthContext';
@@ -12,8 +12,14 @@ import { FontAwesome } from '@expo/vector-icons';
 import axios from 'axios';
 import Taskbar from '../components/Taskbar/Taskbar';
 import HideWithKeyboard from 'react-native-hide-with-keyboard';
+import { RNS3 } from 'react-native-aws3';
+import * as ImageManipulator from 'expo-image-manipulator';
+import { FileSystem } from 'expo';
+
 
 const CreateFoodListing = ({ route }) => {
+
+  const uploadbutton = require('../assets/icons/upload-image-square-button.png')
 
   const navigation = useNavigation();
   const { params } = route;
@@ -29,6 +35,7 @@ const CreateFoodListing = ({ route }) => {
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
   const [imageFile, setImageFile] = useState(null);
+  const [imageUsesAWS, setImageUsesAWS] = useState(false);
   
   const [expirationDate, setExpirationDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -37,13 +44,13 @@ const CreateFoodListing = ({ route }) => {
 
   const { foodCategories } = useContext(FoodContext);
 
+
   const fetchFoodDetails = async () => {
 
     if (id) {
       try {
         const response = await axios.get(`${domain}/api/food/${id}`);
-        console.log('hello world');
-        console.log(response.data);
+
         const data = await response.data; 
         setSelectedCategory(data.category);
         setDescription(data.description);
@@ -53,9 +60,8 @@ const CreateFoodListing = ({ route }) => {
         setPickupLocation(data.pickup_location);
         setPrice(data.price);
         setTitle(data.title);
-        setImageFile(`${domain + data.food_image_url}`)
-
-
+        setImageFile(`${data.food_image_url}`)
+        setImageUsesAWS(true);
         
       } catch (error) {
         console.log('Error fetching food details:', error);
@@ -113,6 +119,7 @@ const CreateFoodListing = ({ route }) => {
 
     if (!pickerResult.cancelled) {
       setImageFile(pickerResult.uri);
+      setImageUsesAWS(false);
     }
   };
 
@@ -127,6 +134,36 @@ const CreateFoodListing = ({ route }) => {
     setShowDatePicker(true);
   };
 
+  // for creating unique image file name
+  const generateUniqueFileName = (fileExtension) => {
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(2, 8);
+    return `${timestamp}_${randomString}.${fileExtension}`;
+  }
+
+  const getFileExtension = (filePath) => {
+    const fileName = filePath.split('/').pop(); // Extract the file name from the path
+    const fileExtension = fileName.split('.').pop(); // Extract the file extension from the file name
+    return fileExtension;
+  }
+
+  const resizeImage = async (imageUri) => {
+    try {
+      const resizedImage = await ImageManipulator.manipulateAsync(
+        imageUri,
+        [{ resize: { height: 480 } }],
+        { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      // The resized image is available in the `resizedImage.uri` property
+      console.log('successfully resize image');
+      return resizedImage.uri;
+    } catch (error) {
+      console.log('resize image error');
+      return imageUri;
+    }
+  };
+
+
   const handleSubmit = async () => {
     // Validate form fields
     if (!title || !description || !price || !pickupLocation || pickupLocation === 'Choose pickup location...' || !selectedCategory) {
@@ -140,11 +177,49 @@ const CreateFoodListing = ({ route }) => {
 
     // Prepare the form data
     const formData = new FormData();
-    formData.append('image', {
-      uri: imageFile,
-      name: 'food_image.jpg',
-      type: 'image/jpeg',
-    });
+
+    // handling of image uploading
+    const options = {
+      keyPrefix: "food_images/",
+      bucket: "gust-images",
+      region: "ap-southeast-1",
+      accessKey: "AKIAZSQ3HGLXG4I2QS2P",
+      secretKey: "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",
+      successActionStatus: 201
+    }
+
+
+    if (imageUsesAWS) {
+
+      formData.append('s3ImageUrl', imageFile);
+
+    } else {
+
+      const reducedUri = await resizeImage(imageFile);
+  
+      const file = {
+        // uri can also be a file system path (i.e. file://)
+        uri: reducedUri,
+        name: generateUniqueFileName(getFileExtension(reducedUri)),
+        type: `image/${getFileExtension(reducedUri)}`,
+      }
+  
+      try {
+        const response = await new Promise((resolve, reject) => {
+          RNS3.put(file, options)
+            .then(resolve)
+            .catch(reject);
+        });
+        formData.append('s3ImageUrl', response.body.postResponse.location);
+  
+      } catch (error) {
+        console.log(error);
+        alert('Unable to upload image at the moment.');
+        formData.append('s3ImageUrl', "https://gust-images.s3.ap-southeast-1.amazonaws.com/food_images/generic_food_image.jpg");
+      }
+
+    }
+
     formData.append('userId', userId);
     formData.append('title', title);
     formData.append('description', description);
@@ -183,11 +258,12 @@ const CreateFoodListing = ({ route }) => {
             'Content-Type': 'multipart/form-data',
           },
         });
-  
+
         // Show success message and navigate to HomeScreen
         alert('Food listing created successfully.');
         navigation.navigate('Home');
       } catch (error) {
+        console.log(error);
         alert('Failed to create food listing.');
       }
 
@@ -213,9 +289,14 @@ const CreateFoodListing = ({ route }) => {
         <LocationSearch updatePickupLocation={updatePickupLocation} closeLocationSearch={() => setShowLocationSearchComponent(false)} />
       ) : (
         <View>
-
+          <ScrollView contentContainerStyle={styles.scrollviewcontainer} showsVerticalScrollIndicator={false}>
           <View style={styles.uploadButtonContainer}>
-            {imageFile && <Image source={{ uri: imageFile }} style={styles.image} />}
+            {imageFile ? (<Image source={{ uri: imageFile }} style={styles.image} />) : (
+              <TouchableOpacity onPress={handleImageUpload}>
+                <Image source={require('../assets/icons/upload-image-square-button.png')} style={{ width: 125, height: 125, margin: 48, resizeMode: 'cover'}} />
+              </TouchableOpacity>
+            )}
+
 
             <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <TouchableOpacity style={[styles.uploadRemoveButton, {backgroundColor: 'orange'}]} onPress={handleImageUpload}>
@@ -256,17 +337,7 @@ const CreateFoodListing = ({ route }) => {
               onChangeText={setTitle}
             />
           </View>
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Description</Text>
-            <TextInput
-            style={styles.input}
-            placeholder="Add a description to let others know more..."
-            value={description}
-            onChangeText={setDescription}
-            multiline
-            numberOfLines={2} // Adjust the number of lines as needed
-            />
-          </View>
+
           <View style={styles.formGroup}>
             <Text style={styles.label}>$ Price</Text>
             <TextInput
@@ -295,27 +366,50 @@ const CreateFoodListing = ({ route }) => {
             )}
           </View>
 
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Description</Text>
+            <TextInput
+            style={styles.descriptioninput}
+            placeholder="Add a description to let others know more..."
+            value={description}
+            onChangeText={setDescription}
+            multiline
+            numberOfLines={7} // Adjust the number of lines as needed
+            />
+          </View>
+
           <View style={[styles.locationContainer, styles.input]}>
             <Ionicons name="location" size={24} color="gray" style={styles.locationIcon} />
             <TouchableOpacity style={styles.locationButton} onPress={() => setShowLocationSearchComponent(true)}>
-              <Text style={[styles.buttonText,  styles.locationText, {color: 'gray', }]}>{pickupLocation}</Text>
+              <Text numberOfLines={2} ellipsizeMode="tail" style={[ styles.locationText, {color: 'gray', }]}>{pickupLocation}</Text>
             </TouchableOpacity>
           </View>
+
 
           <TouchableOpacity style={[styles.button, styles.submitButton]} onPress={handleSubmit}>
             <Text style={styles.buttonText}>{id ? 'Update Listing' : 'Submit New Listing'}</Text>
           </TouchableOpacity>
+          </ScrollView>
         </View>
+        
       )}
       </View>
       <View>
       {isLoggedIn && <HideWithKeyboard><Taskbar activeButton={'create'} onPressButton={handleButtonPress} /></HideWithKeyboard>}
       </View>
+      
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  scrollviewcontainer: {
+    flexGrow: 1,
+    marginBottom: 60,
+    padding: 0,
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
   picker: {
     borderWidth: 1,
     borderColor: 'orange',
@@ -341,6 +435,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    paddingBottom: 50,
     backgroundColor: 'white',
   },
   title: {
@@ -352,6 +447,14 @@ const styles = StyleSheet.create({
   input: {
     height: 40,
     borderBottomWidth: 1,
+    marginBottom: 16,
+    paddingHorizontal: 8,
+  },
+  descriptioninput: {
+    height: 125, // Adjust the height as needed
+    borderColor: 'gray',
+    borderWidth: 1,
+    borderRadius: 8,
     marginBottom: 16,
     paddingHorizontal: 8,
   },
@@ -393,7 +496,9 @@ const styles = StyleSheet.create({
   },
   locationText: {
     flex: 1,
-    marginLeft: 8,
+    paddingHorizontal: 7,
+    textAlignVertical: 'center',
+    fontWeight: 'bold',
   },
   uploadButtonContainer: {
     flexDirection: 'column',
@@ -402,9 +507,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   image: {
-    width: 150,
-    height: 150,
-    aspectRatio: 1,
+    width: 200,
+    height: 200,
     marginBottom: 16,
     resizeMode: 'cover',
   },

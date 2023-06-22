@@ -1,10 +1,11 @@
 {
   "expo": {
-    "name": "frontend",
+    "name": "Gustoso",
     "slug": "frontend",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/logos/ios-app-logo.png",
+    "scheme": "whatsapp",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -22,9 +23,16 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logos/android-app-logo.png",
+        "foregroundImage": "./assets/logos/android-app-logo-adaptive.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.FOREGROUND_SERVICE"
+      ],
+      "package": "com.melvinloh.frontend"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -35,13 +43,24 @@
         {
           "photosPermission": "The app accesses your photos to let you share them with your friends."
         }
-      ],      
+      ],
       [
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "71d6d888-890c-4eb8-821d-a2d2899d8d72"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/71d6d888-890c-4eb8-821d-a2d2899d8d72"
+    }
   }
 }

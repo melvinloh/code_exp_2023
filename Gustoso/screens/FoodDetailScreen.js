@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Image, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import axios from 'axios';
 import { AuthContext } from '../contexts/AuthContext';
 import { Feather } from '@expo/vector-icons';
@@ -36,40 +36,44 @@ const FoodDetailScreen = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      <Image source={{ uri: `${domain + food_image_url}` }} style={styles.image} />
+      <Image source={{ uri: `${food_image_url}` }} style={styles.image} />
+      
       <View style={styles.detailsContainer}>
         <Text style={styles.title}>{title}</Text>
-
+        <ScrollView contentContainerStyle={styles.scrollviewcontainer} showsVerticalScrollIndicator={false}>
         <View style={styles.detailRow}>
-          <Feather name="dollar-sign" size={20} color="black" />
+          <Feather name="dollar-sign" size={20} style={styles.icon}/>
           <Text style={styles.price}>{price}</Text>
         </View>
 
         <View style={styles.detailRow}>
-          <Feather name="file-text" size={20} color="black" />
-          <Text style={styles.description}>{description}</Text>
-        </View>
-
-        <View style={styles.detailRow}>
-          <Feather name="user" size={20} color="black" />
+          <Feather name="user" size={20} style={styles.icon}/>
           <Text style={styles.detailText}><Text style={styles.boldText}>Listed by:</Text> {user}</Text>
         </View>
 
         <View style={styles.detailRow}>
-          <Feather name="clock" size={20} color="black" />
+          <Feather name="clock" size={20} style={styles.icon}/>
           <Text style={styles.detailText}><Text style={styles.boldText}>Expiration Date:</Text> {expiration_date}</Text>
         </View>
 
         <View style={styles.detailRow}>
-          <Feather name="tag" size={20} color="black" />
+          <Feather name="tag" size={20} style={styles.icon}/>
           <Text style={styles.detailText}>{category}</Text>
         </View>
 
         <View style={styles.detailRow}>
-          <Feather name="map-pin" size={20} color="black" />
+          <Feather name="map-pin" size={20} style={styles.icon}/>
           <Text style={styles.detailText}><Text style={styles.boldText}>Pickup at:</Text> {pickup_location}</Text>
         </View>
+
+        <View style={styles.detailRow}>
+          <Feather name="file-text" size={20} style={styles.icon}/>
+          <Text style={styles.description}>{description}</Text>
+        </View>
+
+        </ScrollView>
       </View>
+
 
       <View style={styles.bottomButtonscontainer}>
             <HomeButtonLong />
@@ -82,12 +86,19 @@ const FoodDetailScreen = ({ route }) => {
 };
 
 const styles = StyleSheet.create({
+  scrollviewcontainer: {
+    flexGrow: 1,
+    paddingVertical: 5,
+    paddingRight: 25,
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
   bottomButtonscontainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    marginBottom: 10,
+    paddingTop: 10,
     },
   spacing: {
       width: 10, // Adjust the spacing width as needed
@@ -115,19 +126,25 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
   },
+
   detailRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 10,
+  },
+  icon: {
+    marginTop: 5,
+    color: "orange",
   },
   detailText: {
     marginHorizontal: 10,
     fontSize: 16,
   },
   price: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     marginLeft: 10,
+    color: 'orange',
   },
   description: {
     fontSize: 16,

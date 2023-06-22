@@ -23,7 +23,7 @@ from random import seed, shuffle
 from django.db.models import Q
 
 import uuid
-
+from django.core.files.base import ContentFile
 
 # Create your views here.
 

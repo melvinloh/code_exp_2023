@@ -12,6 +12,7 @@ let debounceTimer;
 const LocationSearch = ({ updatePickupLocation, closeLocationSearch }) => {
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSearch = (text) => {
     setQuery(text);
@@ -31,14 +32,17 @@ const LocationSearch = ({ updatePickupLocation, closeLocationSearch }) => {
 
   const fetchSearchResults = async (text) => {
     try {
+      setIsLoading(true);
       const response = await axios.get(
         // limit the search to Singapore
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(text)}&format=geojson&countrycodes=SG`
       );
       const data = response.data;
       setSearchResults(data.features);
+      setIsLoading(false);
     } catch (error) {
       console.log('Error:', error);
+      setIsLoading(false);
     }
   };
 
@@ -75,6 +79,7 @@ const LocationSearch = ({ updatePickupLocation, closeLocationSearch }) => {
 
   const handleClearSearchQuery = () => {
     setQuery('');
+    setIsLoading(false);
     setSearchResults([]);
   }
 
@@ -99,6 +104,8 @@ const LocationSearch = ({ updatePickupLocation, closeLocationSearch }) => {
             value={query}
             onChangeText={handleSearch}
           />
+         
+
           {query !== '' && (
             <TouchableOpacity onPress={handleClearSearchQuery}>
               <View style={{ backgroundColor: 'lightgray', padding: 2, marginHorizontal: 8, borderRadius: 20 }}>
@@ -113,7 +120,8 @@ const LocationSearch = ({ updatePickupLocation, closeLocationSearch }) => {
 
       </View>
 
-
+      {isLoading && <View><Text style={{ fontSize: 14, color: 'black', marginBottom: 5, textAlign: 'center', }}>Loading...</Text></View>}
+      {!isLoading && query !== '' && searchResults.length === 0 && <View><Text style={{ fontSize: 14, color: 'black', marginBottom: 5, textAlign: 'center', }}>No matching results to show</Text></View>}
 
         <FlatList
           data={searchResults}

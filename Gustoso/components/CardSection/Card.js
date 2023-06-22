@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { View, TouchableOpacity, Image, Text, Dimensions } from 'react-native';
 import { AuthContext } from '../../contexts/AuthContext';
 
@@ -16,7 +16,7 @@ const Card = ({onPress, food_image_url, title, category }) => {
         {/* card content */}
         <View style={{ flex: 1, backgroundColor: 'orange', shadowColor: 'darkgray', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 4 }}>
           {/* card image */}
-          <Image source={{ uri: `${domain + food_image_url}` }} style={{ flex: 1, resizeMode: 'cover', width: cardMaxWidth, height: cardMaxHeight / 10 }} />
+          <Image source={{ uri: `${food_image_url}` }} style={{ flex: 1, resizeMode: 'cover', width: cardMaxWidth, height: cardMaxHeight / 10 }} />
           {/* card text */}
           <View style={{ padding: 8 }}>
             <Text style={{ fontSize: 14, fontWeight: 'bold', color: 'white', marginBottom: 2 }} numberOfLines={1} ellipsizeMode="tail">{title}</Text>
