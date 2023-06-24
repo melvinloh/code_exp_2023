@@ -181,10 +181,10 @@ const CreateFoodListing = ({ route }) => {
     // handling of image uploading
     const options = {
       keyPrefix: "food_images/",
-      bucket: "gust-images",
+      bucket: process.env.REACT_APP_S3_BUCKET,
       region: "ap-southeast-1",
-      accessKey: "AKIAZSQ3HGLXG4I2QS2P",
-      secretKey: "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",
+      accessKey: process.env.REACT_APP_S3_BUCKET_ACCESS_KEY, 
+      secretKey: process.env.REACT_APP_S3_BUCKET_SECRET_KEY,
       successActionStatus: 201
     }
 

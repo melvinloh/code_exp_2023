@@ -10,7 +10,7 @@ const AuthContextProvider = ({ children }) => {
   const [username, setUsername] = useState(null);
   const [authTokens, setAuthTokens] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [domain, setDomain] = useState("http://3.0.19.23")
+  const [domain, setDomain] = useState(process.env.REACT_APP_DOMAIN)
 
   useEffect(() => {
     // Check if there are stored tokens in SecureStore
