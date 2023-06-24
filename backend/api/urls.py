@@ -10,6 +10,7 @@ urlpatterns  = [
     path('listings-near-you/', views.listings_near_you, name='listings-near-you'),
     path('category-listings/', views.category_listings, name='category-listings'),
     path('search-listings/', views.search_listings, name='search-listings'),
+    path('search-listings-image/', views.search_listings_image, name='search-listings-image'),
     path('delete-listing/', views.delete_listing, name='delete-listing'),
     path('food/<str:pk>', views.get_food_listing, name='food'),
 

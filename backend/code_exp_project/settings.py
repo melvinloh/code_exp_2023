@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "api.apps.ApiConfig",
     "rest_framework_simplejwt.token_blacklist",
     "storages",
+    "whitenoise.runserver_nostatic",
 ]
 
 # all jwt auth settings
@@ -104,7 +105,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'code_exp_project.urls'
@@ -131,23 +132,23 @@ WSGI_APPLICATION = 'code_exp_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'gustdb',
-#         'USER': 'gustsuperuser',
-#         'PASSWORD': 'ilovejeffbezos',
-#         'HOST': 'gustdb.ciqdi6hcx81i.ap-southeast-1.rds.amazonaws.com',
-#         'PORT': '5432',
-#     }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'gustdb',
+        'USER': 'gustsuperuser',
+        'PASSWORD': 'ilovejeffbezos123',
+        'HOST': 'gustdb.ckbvbtijgrtw.ap-southeast-1.rds.amazonaws.com',
+        'PORT': '5432',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 
 # Password validation
@@ -187,6 +188,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -205,7 +207,7 @@ AUTH_USER_MODEL = 'user.User'
 
 # configure network settings
 # Django settings.py
-ALLOWED_HOSTS = ['192.168.1.10', '127.0.0.1', '192.168.164.1']
+ALLOWED_HOSTS = ['192.168.1.10', '127.0.0.1', '192.168.164.1', '3.0.19.23',]
 
 CORS_ORIGIN_WHITELIST = [
     'http://192.168.1.10:19000',
@@ -215,9 +217,9 @@ CORS_ORIGIN_WHITELIST = [
 
 
 # REMOVE BEFORE MAKING GITHUB REPO PUBLIC
-AWS_ACCESS_KEY_ID = 'AKIA3NCPY2JHQ6TJ6EFN'
-AWS_SECRET_ACCESS_KEY = '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'
-AWS_STORAGE_BUCKET_NAME = 'gustoso-bucket'
+AWS_ACCESS_KEY_ID = 'AKIAZSQ3HGLXG4I2QS2P'
+AWS_SECRET_ACCESS_KEY = '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'
+AWS_STORAGE_BUCKET_NAME = 'gust-images'
 
 AWS_S3_SIGNATURE_NAME = 's3v4'
 AWS_S3_REGION_NAME = 'ap-southeast-1'

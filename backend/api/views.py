@@ -3,12 +3,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-import base64
-import os
 from .models import FoodListing
-from PIL import Image
-from django.core.files.base import ContentFile
-from io import BytesIO
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Category
@@ -21,12 +16,46 @@ from .serializer import FoodListingSerializer
 
 from random import seed, shuffle
 from django.db.models import Q
+import requests
 
-import uuid
-from django.core.files.base import ContentFile
 
 # Create your views here.
 
+@api_view(['POST'])
+@csrf_exempt
+def search_listings_image(request):
+    if request.method == 'POST':
+        try:
+            api_key = 'acc_dcea7383602ad60'
+            api_secret = '857596328f98745a252753beca1f6900'
+            image_url = request.POST.get('url')
+
+            response = requests.get(
+                'https://api.imagga.com/v2/tags?image_url=%s' % image_url,
+                auth=(api_key, api_secret))
+            
+            # Parse the JSON response
+            response_data = response.json()
+
+            # Select the first tag from the 'tags' array
+            first_tag = response_data['result']['tags'][0]
+
+            # Extract the confidence and tag information
+            confidence = first_tag['confidence']
+            tag = first_tag['tag']['en']
+
+            # Create a dictionary with the selected information
+            result = {
+                'confidence': confidence,
+                'tag': tag
+            }
+
+            return JsonResponse(result)
+
+        except:
+            return Response({'error': 'Invalid request method.'}, status=400)
+
+        
 
 @api_view(['POST'])
 @csrf_exempt
@@ -185,11 +214,6 @@ def get_my_listings(request):
     return Response({'error': 'Invalid request method.'}, status=400)
 
 
-def generate_unique_filename(original_filename):
-    extension = os.path.splitext(original_filename)[1]
-    unique_filename = f"{uuid.uuid4().hex}{extension}"
-    return unique_filename
-
 @api_view(['POST'])
 @csrf_exempt
 def edit_food_listing(request):
@@ -209,22 +233,11 @@ def edit_food_listing(request):
         food_listing.longitude = float(request.POST.get('longitude'))
         food_listing.latitude = float(request.POST.get('latitude'))
 
-        try: 
-            image_data = request.FILES['image']
-            if image_data:
-                # Generate a new unique filename
-                original_filename = image_data.name
-                new_filename = generate_unique_filename(original_filename)
+        if request.POST.get('s3ImageUrl') is not None:
+            food_listing.image = request.POST.get('s3ImageUrl')
 
-            # Rename the image file
-            image_data.name = new_filename
-            food_listing.image = image_data
-            food_listing.save()
-        
-        except Exception as e:
-            food_listing.save()
-            return Response({'success': 'Food listing edited successfully.'}, status=status.HTTP_200_OK)
-
+        food_listing.save()
+            
         # Return success response
         return Response({'success': 'Food listing edited successfully.'}, status=status.HTTP_200_OK)
 
@@ -253,6 +266,8 @@ def create_food_listing(request):
         longitude = request.POST.get('longitude')
         latitude = request.POST.get('latitude')
 
+        image_url = request.POST.get('s3ImageUrl')
+
 
         # Create a new FoodListing instance
         food_listing = FoodListing(
@@ -263,38 +278,12 @@ def create_food_listing(request):
             pickup_location=pickup_location,
             category=Category.objects.get(category_name=category),
             expiration_date=expiration_date,
-
+            image=image_url,
             latitude=float(latitude),
             longitude=float(longitude),
         )
 
-        try: 
-
-            image_data = request.FILES['image']
-            if image_data:
-                # Generate a new unique filename
-                original_filename = image_data.name
-                new_filename = generate_unique_filename(original_filename)
-
-            # Rename the image file
-            image_data.name = new_filename
-            food_listing.image = image_data
-            food_listing.save()
-        
-            # # Decode and process the image data
-            # format, imgstr = image_data.split(';base64,')
-            # ext = format.split('/')[-1]
-            # data = ContentFile(base64.b64decode(imgstr), name=f'temp.{ext}')
-
-            # # Set the image field using the processed image data
-            # food_listing.image.save(f'image_{food_listing.id}.{ext}', data, save=True)
-
-        except Exception as e:
-            # hardcode the image
-            hardcoded_image_path = '/hardcoded-image.jpg'
-            food_listing.image = hardcoded_image_path
-            food_listing.save()
-            return Response({'success': 'Food listing created successfully.'}, status=status.HTTP_201_CREATED)
+        food_listing.save()
 
         # Return success response
         return Response({'success': 'Food listing created successfully.'}, status=status.HTTP_201_CREATED)
