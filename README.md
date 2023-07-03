@@ -6,6 +6,11 @@ Organized by DSTA, CODE EXP is a hackathon where participants can get to leverag
 Participants are to innovate and develop an app to solve real-world problems! The theme for the competition is: **Hack for Public Good**. 
 Participants are to work on an application for the benefit/well-being of the public. 
 
+## Finalists Presentation
+
+- [Demo Application](https://www.youtube.com/watch?v=GQEfeJQMW0o)
+- [Powerpoint Presentation](./Finalists_Presentation.pdf) 
+
 ## Deliverables for Qualifiers
 
 - [Wireframe](https://www.figma.com/file/ok2RZYXx9M2uyqusGX7DpM/code_exp-wireframe?type=whiteboard&t=nBycGwRcrWux6BB7-1) made on Figma
